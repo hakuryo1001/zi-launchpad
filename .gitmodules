@@ -10,3 +10,9 @@
 [submodule "lib/prb-math"]
 	path = lib/prb-math
 	url = https://github.com/PaulRBerg/prb-math
+[submodule "lib/prb-test"]
+	path = lib/prb-test
+	url = https://github.com/PaulRBerg/prb-test
+[submodule "lib/zi-token"]
+	path = lib/zi-token
+	url = https://github.com/hakuryo1001/zi-token
