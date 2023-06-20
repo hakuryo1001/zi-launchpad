@@ -121,13 +121,33 @@ contract AuctionModuleSetUp is PRBTest, StdCheats {
     }
 
     function test_deposit_more_for_auctioning() public {
+        uint256 additionalAuctionAmount = 1e5 ether;
+        uint256 extraTime = 3 weeks;
         uint256 totalAuctionAmount = am.totalAuctionAmount();
-        int256 timeToEmitAll = am.timeToEmitAll();
-        zi.mint(zi.owner(), ownerAmount);
-        zi.approve(address(am), ownerAmount);
-        am.depositMoreForAuctioning(ownerAmount, 52 weeks);
-        assertEq(am.totalAuctionAmount(), totalAuctionAmount + ownerAmount);
-        assertEq(zi.balanceOf(address(am)), totalAuctionAmount + ownerAmount);
-        assertEq(am.timeToEmitAll(), timeToEmitAll + 52 weeks);
+        uint256 timeToEmitAll = uint256(am.timeToEmitAll());
+        console.log("emission rate before:", am.emissionRate());
+        console.log("decay constant before:", am.decayConstant());
+        console.log("halflife before:", am.halflife());
+        console.log("total auction amount before:", am.totalAuctionAmount());
+        // console.log("criticalTime before:", am.criticalTime());
+        // console.log("criticalAmount before:", am.criticalAmount());
+        zi.mint(zi.owner(), additionalAuctionAmount);
+        zi.approve(address(am), additionalAuctionAmount);
+        am.depositMoreForAuctioning(ownerAmount, extraTime);
+        assertEq(
+            am.totalAuctionAmount(),
+            totalAuctionAmount + additionalAuctionAmount
+        );
+        assertEq(
+            zi.balanceOf(address(am)),
+            totalAuctionAmount + additionalAuctionAmount
+        );
+        assertEq(uint256(am.timeToEmitAll()), timeToEmitAll + extraTime);
+        console.log("emission rate after:", am.emissionRate());
+        console.log("decay constant after:", am.decayConstant());
+        console.log("halflife after:", am.halflife());
+        console.log("total auction amount after:", am.totalAuctionAmount());
+        // console.log("criticalTime after:", am.criticalTime());
+        // console.log("criticalAmount after:", am.criticalAmount());
     }
 }
