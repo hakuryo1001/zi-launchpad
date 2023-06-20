@@ -49,10 +49,6 @@ contract AuctionModuleSetUp is PRBTest, StdCheats {
         assertLte(am.halflife(), 1 days + 1 weeks); // not equal due to rounding errors
     }
 
-    // function test_decimals() public {
-    //     int256 x = 1e19
-    // }
-
     function test_time_limits() public {
         console.log(
             "day 0 purchasePrice:",
@@ -116,25 +112,11 @@ contract AuctionModuleSetUp is PRBTest, StdCheats {
         );
     }
 
-    function test_price() public {
-        // console.log(uint256(unwrap(sd(2e18))));
-        // console.logInt(unwrap(sd(2e18)));
-        // uint256 purchasePrice = am.purchasePrice(uint256(1e18));
-        // console.log("purchase price:", purchasePrice / 1 ether, "ether");
-    }
-
     function test_view_stuff() public {
-        vm.warp(203 days);
-
         console.log("emission rate:", am.emissionRate());
         console.log("decay constant:", am.decayConstant());
         console.log("halflife:", am.halflife());
         console.log("criticalTime:", am.criticalTime());
         console.log("criticalAmount:", am.criticalAmount());
-        console.log(
-            "day 203 purchasePrice:",
-            am.purchasePrice(uint256(1 ether)),
-            "wei"
-        );
     }
 }
