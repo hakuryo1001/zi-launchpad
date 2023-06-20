@@ -119,4 +119,15 @@ contract AuctionModuleSetUp is PRBTest, StdCheats {
         console.log("criticalTime:", am.criticalTime());
         console.log("criticalAmount:", am.criticalAmount());
     }
+
+    function test_deposit_more_for_auctioning() public {
+        uint256 totalAuctionAmount = am.totalAuctionAmount();
+        int256 timeToEmitAll = am.timeToEmitAll();
+        zi.mint(zi.owner(), ownerAmount);
+        zi.approve(address(am), ownerAmount);
+        am.depositMoreForAuctioning(ownerAmount, 52 weeks);
+        assertEq(am.totalAuctionAmount(), totalAuctionAmount + ownerAmount);
+        assertEq(zi.balanceOf(address(am)), totalAuctionAmount + ownerAmount);
+        assertEq(am.timeToEmitAll(), timeToEmitAll + 52 weeks);
+    }
 }
