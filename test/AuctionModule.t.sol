@@ -41,8 +41,8 @@ contract AuctionModuleSetUp is PRBTest, StdCheats {
         am = new AuctionModule(
             address(zi),
             _launchpadAmount,
-            int256(_initialAuctionPrice),
-            int256(_timeToEmitAll)
+            _initialAuctionPrice,
+            _timeToEmitAll
         );
         zi.transfer(address(am), _launchpadAmount);
         zi.mint(zi.owner(), _ownerAmount);

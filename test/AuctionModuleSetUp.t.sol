@@ -120,17 +120,16 @@ contract AuctionModuleSetUp is PRBTest, StdCheats {
         console.log("criticalAmount:", am.criticalAmount());
     }
 
+    // if I deposit more, and add extraTime, the time to emit all, and therefore emission rate should change.
+    // halflife does not change - it remains to be 1 day
+    // decayConstant does not change either
+
     function test_deposit_more_for_auctioning() public {
         uint256 additionalAuctionAmount = 1e5 ether;
         uint256 extraTime = 3 weeks;
         uint256 totalAuctionAmount = am.totalAuctionAmount();
         uint256 timeToEmitAll = uint256(am.timeToEmitAll());
-        console.log("emission rate before:", am.emissionRate());
-        console.log("decay constant before:", am.decayConstant());
-        console.log("halflife before:", am.halflife());
-        console.log("total auction amount before:", am.totalAuctionAmount());
-        // console.log("criticalTime before:", am.criticalTime());
-        // console.log("criticalAmount before:", am.criticalAmount());
+
         zi.mint(zi.owner(), additionalAuctionAmount);
         zi.approve(address(am), additionalAuctionAmount);
         am.depositMoreForAuctioning(ownerAmount, extraTime);
@@ -143,11 +142,7 @@ contract AuctionModuleSetUp is PRBTest, StdCheats {
             totalAuctionAmount + additionalAuctionAmount
         );
         assertEq(uint256(am.timeToEmitAll()), timeToEmitAll + extraTime);
-        console.log("emission rate after:", am.emissionRate());
-        console.log("decay constant after:", am.decayConstant());
-        console.log("halflife after:", am.halflife());
-        console.log("total auction amount after:", am.totalAuctionAmount());
-        // console.log("criticalTime after:", am.criticalTime());
-        // console.log("criticalAmount after:", am.criticalAmount());
     }
+
+    // function can_withdraw_reserves
 }
