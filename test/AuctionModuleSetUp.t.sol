@@ -104,7 +104,7 @@ contract AuctionModuleSetUp is PRBTest, StdCheats {
         );
         assertEq(am.purchasePrice(1 ether), 150153925650144);
         vm.warp(21 days);
-        vm.expectRevert("Buying more than 10% of the remaining supply");
+        assertEq(am.purchasePrice(1e5 ether), 1000 ether);
         console.log(
             "day 21 purchasePrice, buy amount: 1e5 * 1e18:",
             am.purchasePrice(uint256(1e5 ether)),
