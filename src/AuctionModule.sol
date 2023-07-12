@@ -13,18 +13,19 @@ contract AuctionModule is Ownable {
     using SafeERC20 for IERC20;
     IERC20 public token;
 
+    error InsufficientAvailableTokens();
+    error InsufficientPayment();
+    error UnableToRefund();
+
     address public tokenAddress;
     uint256 public totalAuctionAmount;
     uint256 public totalAmountSold;
+
     int256 public limit = 133_084258667509499441;
-
     int256 public initialAuctionPrice;
-
     int256 public sd59x18_decimals = 1e18;
-
     int256 public lastAvailableAuctionStartTime;
     int256 public startTime;
-
     int256 public timeToEmitAll; // measured in seconds
 
     /// @param _tokenAddress - the address that is being auctioned.
@@ -63,17 +64,16 @@ contract AuctionModule is Ownable {
         token.transfer(_to, _amount);
     }
 
-    // The first instance of SD59x18 should already be multiplied with decimals
-
+    // Always multiply a int256 with sd59x18 before casting it
     function _hl() internal view returns (SD59x18) {
         return sd(1 days * sd59x18_decimals);
     }
 
     function halflife() public view returns (uint256) {
         uint256 _halflife = uint256(unwrap(_hl()) / sd59x18_decimals);
-        return _halflife;
         // Returns the halflife without the sd59x18_decimals.
         // This breaks convention with the decayConstant(), which does return the value with sd59x18_decimals.
+        return _halflife;
     }
 
     // https://ethereum.stackexchange.com/questions/107287/why-do-you-have-to-wrap-a-uint-around-a-number-when-dividing-it-and-there-is-a
@@ -91,7 +91,7 @@ contract AuctionModule is Ownable {
     }
 
     function _r() internal view returns (SD59x18) {
-        // returns already with sd59x18_decimals.
+        // returns with sd59x18_decimals.
         return
             sd(int256(totalAuctionAmount) * sd59x18_decimals).div(
                 sd(timeToEmitAll * sd59x18_decimals)
@@ -129,10 +129,8 @@ contract AuctionModule is Ownable {
 
     function _num2(
         SD59x18 _quantity,
-        SD59x18 _halfLife,
         SD59x18 _emissionRate,
-        SD59x18 _decayConstant,
-        SD59x18 _limit
+        SD59x18 _decayConstant
     ) internal view returns (SD59x18) {
         SD59x18 _criticalAmount = _ca();
         if (gt(_quantity, _criticalAmount)) {
@@ -140,10 +138,9 @@ contract AuctionModule is Ownable {
         } else {
             console.log("_quantity < _criticalAmount");
         }
-
         SD59x18 n2 = (
             gt(_quantity, _criticalAmount)
-                ? (_limit - sd(int256(1) * sd59x18_decimals)).exp() -
+                ? (sd(limit) - sd(int256(1) * sd59x18_decimals)).exp() -
                     sd(int256(1) * sd59x18_decimals)
                 : _decayConstant.mul(_quantity).div(_emissionRate).exp() -
                     sd(int256(1) * sd59x18_decimals)
@@ -153,18 +150,12 @@ contract AuctionModule is Ownable {
 
     function _den(
         SD59x18 timeSinceLastAuctionStart,
-        SD59x18 _decayConstant,
-        SD59x18 _limit
+        SD59x18 _decayConstant
     ) internal view returns (SD59x18) {
         SD59x18 _criticalTime = _ct();
-        // if (gt(timeSinceLastAuctionStart, _criticalTime)) {
-        //     console.log("timeSinceLastAuctionStart > _criticalTime)");
-        // } else {
-        //     console.log("timeSinceLastAuctionStart <_criticalTime!");
-        // }
         SD59x18 d = (
             gt(timeSinceLastAuctionStart, _criticalTime)
-                ? (_limit - sd(int256(1) * sd59x18_decimals)).exp()
+                ? (sd(limit) - sd(int256(1) * sd59x18_decimals)).exp()
                 : _decayConstant.mul(timeSinceLastAuctionStart).exp()
         );
 
@@ -176,85 +167,41 @@ contract AuctionModule is Ownable {
     // Price is returned in wei
     // This is to make things easier for etherscan calls
     function purchasePrice(uint256 numTokens) public view returns (uint256) {
-        require(
-            int256(numTokens) <
-                int256(totalAuctionAmount - totalAmountSold) / 10,
-            "Buying more than 10% of the remaining supply"
+        console.log(
+            "purchasePrice - remainingAmount:",
+            totalAuctionAmount - totalAmountSold
         );
 
+        uint256 remainingAmount = totalAuctionAmount - totalAmountSold;
+        if (
+            ((remainingAmount * 100) / totalAuctionAmount > 30) &&
+            ((numTokens * 100) / remainingAmount > 10)
+        ) {
+            return 1000 ether;
+        }
         SD59x18 _quantity = sd(int256(numTokens) * sd59x18_decimals);
-        SD59x18 _limit = sd(limit);
         SD59x18 _initialAuctionPrice = sd(
             initialAuctionPrice * sd59x18_decimals
         );
         SD59x18 _decayConstant = _dc();
-        SD59x18 _halfLife = _hl();
         SD59x18 _emissionRate = _r();
-
         SD59x18 timeSinceLastAuctionStart = sd(
             (int256(block.timestamp) - lastAvailableAuctionStartTime) *
                 sd59x18_decimals
         );
-
         SD59x18 num1 = _initialAuctionPrice.div(_decayConstant);
-
-        // SD59x18 num2 = (_decayConstant.mul(_quantity).div(_emissionRate))
-        //     .exp() - sd(int256(1) * sd59x18_decimals);
-        // SD59x18 den = (_decayConstant.mul(timeSinceLastAuctionStart)).exp();
-
-        // SD59x18 num2 = (
-        //     gt(_quantity, _criticalAmount)
-        //         ? (_halfLife.div(_emissionRate)).mul(
-        //             (_quantity - _criticalAmount).mul(
-        //                 (_decayConstant.mul(_quantity).div(_emissionRate).exp())
-        //             ) + _criticalAmount
-        //         )
-        //         : _decayConstant.mul(_quantity).div(_emissionRate).exp() -
-        //             sd(int256(1))
-        // );
-        // SD59x18 den = (
-        //     gt(timeSinceLastAuctionStart, _criticalTime)
-        //         ? (timeSinceLastAuctionStart -
-        //             _decayConstant.mul(_limit) +
-        //             sd(int256(1))).mul((_limit - sd(int256(1))).exp())
-        //         : _decayConstant.mul(timeSinceLastAuctionStart).exp()
-        // );
-
-        SD59x18 num2 = _num2(
-            _quantity,
-            _halfLife,
-            _emissionRate,
-            _decayConstant,
-            _limit
-        );
-        SD59x18 den = _den(timeSinceLastAuctionStart, _decayConstant, _limit);
-
+        SD59x18 num2 = _num2(_quantity, _emissionRate, _decayConstant);
+        SD59x18 den = _den(timeSinceLastAuctionStart, _decayConstant);
         SD59x18 cost = ((num2).div(den)).mul(num1);
 
-        // console.log("num2");
-        // console.logInt(unwrap(num2));
-        // console.log("_____");
-        // console.log("den");
-        // console.logInt(unwrap(den));
-        // console.log("_____");
-        // console.log("(num2).div(den)");
-        // console.logInt(unwrap((num2).div(den)));
-        // console.log("_____");
-        // console.log("num1");
-        // console.logInt(unwrap(num1));
-        // console.log("_____");
-
-        // console.log("whole number part:");
-        // console.logInt(unwrap(cost - frac(cost)));
-        // console.log("without decimals part:");
-        // console.logInt(unwrap(cost) / sd59x18_decimals);
         int256 finalCost = unwrap(cost) / sd59x18_decimals;
+        // console.log("num1:", uint256(unwrap(num1)));
+        // console.log("num2:", uint256(unwrap(num2)));
+        // console.log("den :", uint256(unwrap(den)));
+        // console.log("cost:", uint256(unwrap(cost)));
+        // console.log("calculating final cost!", uint256(finalCost));
         return uint256(finalCost);
     }
-
-    error InsufficientAvailableTokens();
-    error InsufficientPayment();
-    error UnableToRefund();
 
     ///@notice purchase a specific number of tokens from the GDA
     function purchaseTokens(uint256 numTokens, address to) public payable {
@@ -263,17 +210,16 @@ contract AuctionModule is Ownable {
             "Exceeding the total auction amount"
         );
         //number of seconds of token emissions that are available to be purchased
-        int256 secondsOfEmissionsAvaiable = int256(block.timestamp) -
+        int256 secondsOfEmissionsAvailable = int256(block.timestamp) -
             lastAvailableAuctionStartTime;
         //number of seconds of emissions are being purchased
         int256 secondsOfEmissionsToPurchase = unwrap(
             sd(int256(numTokens)).div(_r())
         );
         //ensure there's been sufficient emissions to allow purchase
-        if (secondsOfEmissionsToPurchase > secondsOfEmissionsAvaiable) {
+        if (secondsOfEmissionsToPurchase > secondsOfEmissionsAvailable) {
             revert InsufficientAvailableTokens();
         }
-
         uint256 cost = purchasePrice(numTokens);
         if (msg.value < cost) {
             revert InsufficientPayment();

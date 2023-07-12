@@ -32,23 +32,25 @@ Transactions saved to: /Users/username/Documents/AuctionModule/broadcast/Auction
 Waiting for receipts.
 ⠉ [00:00:00] [############################################################################################################################################################################] 1/1 receipts (0.0s)
 ##### anvil-hardhat
-✅ Hash: 0x421f2de6cdefba7b623b4af2336ee561d520ae8e3239cba3dc52f1cfe0fa02e3
-Contract Address: 0x5fbdb2315678afecb367f032d93f642f64180aa3
+✅ Hash: 0xebe791ee55c6fba68653e90234991cccdd2c69ffa41ad330701a3fe1e8c214de
+Contract Address: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
 Block: 1
-Paid: 0.007330992 ETH (1832748 gas * 4 gwei)
+Paid: 0.007642008 ETH (1910502 gas * 4 gwei)
 
+Transactions saved to: /Users/hongjan/Documents/zi-launchpad/broadcast/AuctionModule.s.sol/31337/run-latest.json
 
-Transactions saved to: /Users/username/Documents/AuctionModule/broadcast/AuctionModule.s.sol/31337/run-latest.json
+Sensitive values saved to: /Users/hongjan/Documents/zi-launchpad/cache/AuctionModule.s.sol/31337/run-latest.json
 
 
 
 ==========================
 
 ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
-Total Paid: 0.007330992 ETH (1832748 gas * avg 4 gwei)
+Total Paid: 0.015455508 ETH (3863877 gas * avg 4 gwei)
+
 ```
 
-The address `0x5fbdb2315678afecb367f032d93f642f64180aa3` is what you would need for using [wagmi](https://wagmi.sh/) to communicate with this local deployment. The contract ABI which is used in the `out` folder, under the name of the contract deployed, in this case `AuctionModule.sol`, will also be necessary for wagmi to run for you to build the frontend.
+The address `0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512` is what you would need for using [wagmi](https://wagmi.sh/) to communicate with this local deployment. The contract ABI which is used in the `out` folder, under the name of the contract deployed, in this case `AuctionModule.sol`, will also be necessary for wagmi to run for you to build the frontend.
 
 ### Deployment to Sepolia Testnet
 

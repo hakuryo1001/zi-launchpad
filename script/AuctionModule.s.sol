@@ -14,7 +14,6 @@ contract AuctionModuleScript is BaseScript {
         uint256 launchpadAmount = initialSupply;
         uint256 initialAuctionPrice = 1 ether;
         uint256 timeToEmitAll = 52 weeks;
-        uint256 ownerAmount = 1e5 * decimals;
 
         Zi zi = new Zi(initialSupply, supplyLimit);
         am = new AuctionModule(

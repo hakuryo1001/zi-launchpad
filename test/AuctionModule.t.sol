@@ -57,10 +57,13 @@ contract AuctionModuleSetUp is PRBTest, StdCheats {
 
     function test_price_1() public {
         auctionModuleSetUp(launchpadAmount, 1 ether, 52 weeks, ownerAmount);
-        uint256 purchasePrice = am.purchasePrice(1e18);
-        console.log("purchase price:", purchasePrice);
+
+        uint256 purchasePrice = am.purchasePrice(1 ether);
+
+        console.log("time:", block.timestamp, "purchase price:", purchasePrice);
+
         // console.log("purchase price:", purchasePrice / 1 ether, "ether");
-        // assertEq(purchasePrice / 1 ether, 872541);
+        assertEq(purchasePrice, 314893079349452644075);
     }
 
     function test_price_2() public {
@@ -84,6 +87,27 @@ contract AuctionModuleSetUp is PRBTest, StdCheats {
             "ether"
         );
         // assertEq(purchasePrice / 1 ether, 872541);
+    }
+
+    function test_purchasing() public {
+        auctionModuleSetUp(launchpadAmount, 1 ether, 1 weeks, ownerAmount);
+        // uint256 purchasePrice = am.purchasePrice(1 ether);
+        console.log(
+            "time:",
+            block.timestamp,
+            "purchase price:",
+            am.purchasePrice(1 ether)
+        );
+        // vm.warp(1 weeks);
+        // uint256 purchasePrice = am.purchasePrice(1 ether);
+        console.log(
+            "time:",
+            block.timestamp,
+            "purchase price:",
+            am.purchasePrice(1 ether)
+        );
+        hoax(alice, 1000 ether);
+        am.purchaseTokens{value: 100 ether}(0.0000001 ether, alice);
     }
 
     function test_limit() public {
